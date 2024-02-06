@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(uuid())
+  username    String
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  addresses   Address[]
+  orders      Order[]
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  name          String
+  description   String
+  price         Float
+  stockQuantity Int
+  imageUrl      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  orderItems    OrderItem[]
+}
+
+// model Category {
+//   id               String      @id @default(uuid())
+//   name             String
+//   parentCategoryId String?
+//   products         Product[]
+//   subcategories    Category[]  @relation("ParentCategory")
+//   parentCategory   Category?   @relation("ParentCategory", fields: [parentCategoryId], references: [id], onDelete: Cascade)
+// }
+
+model Category {
+  id               String     @id @default(uuid())
+  name             String
+  products         Product[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  parentCategoryId String?
+  children         Category[] @relation("Children")
+  parentCategory   Category?  @relation("Children", fields: [parentCategoryId], references: [id],onDelete: Cascade)
+}
+
+// model TreeNode {
+//   id       Int       @id @default(autoincrement())
+//   parentId Int?
+//   name     String
+//   children TreeNode[] @relation("Children")
+//   parent   TreeNode?  @relation("Children", fields: [parentId], references: [id])
+// }
+
+
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  totalAmount Float
+  orderDate   DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  subtotal  Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String // Change from Int to String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
